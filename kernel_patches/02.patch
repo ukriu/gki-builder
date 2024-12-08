@@ -1,0 +1,59 @@
+From 28a59152caca8a78a53a63104b5245eebbd9b30b Mon Sep 17 00:00:00 2001
+From: Danny Lin <danny@kdrag0n.dev>
+Date: Wed, 31 Jul 2019 22:26:08 -0700
+Subject: [PATCH] kbuild: Add support for LLVM's Polly optimizer
+
+This adds support for compiling the kernel with optimizations offered
+by LLVM's polyhedral loop optimizer known as Polly, which can improve
+performance by improving cache locality in loops. Note that LLVM is not
+compiled with Polly by default -- it must be enabled explicitly.
+
+[ghostrider-reborn]
+- Removed polly DCE as it's no longer supported
+
+Signed-off-by: Adithya R <gh0strider.2k18.reborn@gmail.com>
+---
+ Makefile     | 10 ++++++++++
+ arch/Kconfig |  8 ++++++++
+ 2 files changed, 18 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index d27f8c4748c3..a1e309a3fe5a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -768,6 +768,16 @@ else ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+ KBUILD_CFLAGS += -Os
+ endif
+ 
++ifdef CONFIG_LLVM_POLLY
++KBUILD_CFLAGS	+= -mllvm -polly \
++		   -mllvm -polly-run-inliner \
++		   -mllvm -polly-opt-fusion=max \
++		   -mllvm -polly-ast-use-context \
++		   -mllvm -polly-detect-keep-going \
++		   -mllvm -polly-vectorizer=stripmine \
++		   -mllvm -polly-invariant-load-hoisting
++endif
++
+ # Tell gcc to never replace conditional load with a non-conditional one
+ KBUILD_CFLAGS	+= $(call cc-option,--param=allow-store-data-races=0)
+ KBUILD_CFLAGS	+= $(call cc-option,-fno-allow-store-data-races)
+diff --git a/arch/Kconfig b/arch/Kconfig
+index a31288fca57c..d18ee26fcbf6 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -738,6 +738,14 @@ config CFI_PERMISSIVE
+ 	  warning instead of a kernel panic. This option is useful for finding
+ 	  CFI violations during development.
+ 
++config LLVM_POLLY
++	bool "Enable LLVM's polyhedral loop optimizer (Polly)"
++	help
++	  This option enables LLVM's polyhedral loop optimizer known as Polly.
++	  Polly is able to optimize various loops throughout the kernel for
++	  maximum cache locality. This requires an LLVM toolchain explicitly
++	  compiled with Polly support.
++
+ config HAVE_ARCH_WITHIN_STACK_FRAMES
+ 	bool
+ 	help

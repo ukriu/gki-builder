@@ -1,0 +1,23 @@
+From a4ecbede43eba4d97b7afa70dc42770bf992c120 Mon Sep 17 00:00:00 2001
+From: Ren <89468157+Shirayuki39@users.noreply.github.com>
+Date: Tue, 24 Sep 2024 13:30:33 +0000
+Subject: [PATCH] build.config.common: Update to Clang 19.0.1
+
+Signed-off-by: Ren <89468157+Shirayuki39@users.noreply.github.com>
+---
+ build.config.common | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/build.config.common b/build.config.common
+index 9ec1c637a79f..e8dc26596f9d 100644
+--- a/build.config.common
++++ b/build.config.common
+@@ -4,7 +4,7 @@ KMI_GENERATION=9
+ LLVM=1
+ DEPMOD=depmod
+ DTC=dtc
+-CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r416183b/bin
++CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r536225/bin
+ BUILDTOOLS_PREBUILT_BIN=build/build-tools/path/linux-x86
+ 
+ KCFLAGS="${KCFLAGS} -D__ANDROID_COMMON_KERNEL__"

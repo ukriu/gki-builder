@@ -1,0 +1,85 @@
+name: Build GKI
+
+on:
+  workflow_dispatch:
+    inputs:
+      LTO:
+        description: 'LTO Type'
+        required: true
+        default: 'thin'
+        type: choice
+        options:
+          - 'full'
+          - 'thin'
+          - 'none'
+      SUSFS4KSU:
+        description: 'Do you want to include SUSFS4KSU?'
+        required: true
+        default: ''
+        type: choice
+        options:
+          - 'Yes'
+          - 'No'
+      NOTE:
+        description: 'Release Note'
+        required: false
+
+jobs:
+  build:
+    name: Build GKI Kernel
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Swap Space
+      uses: pierotofy/set-swap-space@master
+      with:
+        swap-size-gb: 16
+
+    - name: Free up storage
+      uses: rokibhasansagar/slimhub_actions@main
+
+    - name: Build
+      run: |
+        [ -x "build.sh" ] || chmod a+x build.sh
+        export LTO_TYPE="${{ github.event.inputs.LTO }}"
+        if [ "${{ github.event.inputs.SUSFS4KSU }}" = "Yes" ]; then
+            export USE_KSU_SUSFS=1
+        fi
+        if [ -n "${{ github.event.inputs.NOTE }}" ]; then
+            export NOTE="${{ github.event.inputs.NOTE }}"
+        fi
+        ./build.sh
+
+    - name: Check for Kernel Image and Upload Artifacts
+      run: |
+        if ! [ -f "$KERNEL_IMAGE" ]; then
+            echo "Build failed!" >> "$WORK_DIR/build_log.txt"
+        fi
+
+    - name: Upload GKI Kernel Artifact
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: GKI-Kernel
+        path: ${{ github.workspace }}/$WORK_DIR/$ZIP_NAME
+        retention-days: 5
+
+    - name: Upload SUSFS Module Artifact
+      if: always() && ${{ github.event.inputs.SUSFS4KSU == 'Yes' }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: SUSFS-Module
+        path: ${{ github.workspace }}/$WORK_DIR/$SUSFS_MODULE_ZIP
+        retention-days: 5
+
+    - name: Upload Build Log Artifact
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: Build-Log
+        path: ${{ github.workspace }}/$WORK_DIR/build_log.txt
+        retention-days: 5
+
