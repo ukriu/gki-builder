@@ -199,3 +199,5 @@ else
     fi
 fi
 
+export ZIP_NAME
+export SUSFS_MODULE_ZIP
