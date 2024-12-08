@@ -167,8 +167,6 @@ ${NOTE}
 EOF
 )
 
-send_msg "$text"
-
 set +e
 
 ## Build GKI
