@@ -53,49 +53,12 @@ jobs:
         fi
         ./build.sh
 
-    - name: Check for Kernel Image and Prepare Artifacts
-      run: |
-        set -e
-        WORK_DIR="$(pwd)"
-        KERNEL_IMAGE="$WORK_DIR/path/to/kernel/image" # Adjust the path as necessary
-        ZIP_NAME="kernel.zip"
-        SUSFS_MODULE_ZIP="susfs_module.zip"
-        BUILD_LOG="$WORK_DIR/build_log.txt"
-        
-        if ! [ -f "$KERNEL_IMAGE" ]; then
-            echo "Build failed!" | tee "$BUILD_LOG"
-        else
-            # Zipping
-            cd "$WORK_DIR/anykernel"
-            sed -i "s/DUMMY1/$KERNEL_VERSION/g" anykernel.sh
-            if [ -z "$USE_KSU_SUSFS" ]; then
-                sed -i "s/DUMMY2//g" anykernel.sh
-            else
-                sed -i "s/DUMMY2/xSUSFS/g" anykernel.sh
-            fi
-            cp "$KERNEL_IMAGE" .
-            zip -r9 "$ZIP_NAME" * -x LICENSE
-            mv "$ZIP_NAME" "$WORK_DIR"
-            cd "$WORK_DIR"
-            
-            if [ -n "$USE_KSU_SUSFS" ]; then
-                cd "$SUSFS_MODULE"
-                zip -r9 "$SUSFS_MODULE_ZIP" * -x README.md
-                mv "$SUSFS_MODULE_ZIP" "$WORK_DIR"
-                cd "$WORK_DIR"
-            fi
-        fi
-      env:
-        KERNEL_VERSION: ${{ github.sha }}
-        SUSFS_MODULE: ${{ github.workspace }}/path/to/susfs_module # Adjust path
-        SUSFS_VERSION: "1.0" # Adjust version as necessary
-
     - name: Upload GKI Kernel Artifact
       if: always()
       uses: actions/upload-artifact@v3
       with:
         name: GKI-Kernel
-        path: ${{ github.workspace }}/kernel.zip
+        path: ${{ github.workspace }}/${{ env.ZIP_NAME }}
         retention-days: 5
 
     - name: Upload SUSFS Module Artifact
@@ -103,7 +66,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: SUSFS-Module
-        path: ${{ github.workspace }}/susfs_module.zip
+        path: ${{ github.workspace }}/${{ env.SUSFS_MODULE_ZIP }}
         retention-days: 5
 
     - name: Upload Build Log Artifact
