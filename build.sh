@@ -111,14 +111,15 @@ fi
 
 ## susfs4ksu
 if [ -n "$USE_KSU_SUSFS" ]; then
-    ls
     git clone --depth=1 "https://gitlab.com/simonpunk/susfs4ksu" -b "gki-${GKI_VERSION}"
+    pwd
     ls
     SUSFS_PATCHES="$WORK_DIR/susfs4ksu/kernel_patches"
     SUSFS_MODULE="$WORK_DIR/susfs4ksu/ksu_module_susfs"
     ZIP_NAME=$(echo "$ZIP_NAME" | sed 's/KSU/KSUxSUSFS/g')
-    ls
     cd "$WORK_DIR/susfs4ksu"
+    pwd
+    ls
     LAST_COMMIT_SUSFS=$(git log --format="%s" -n 1)
     
     cd "$WORK_DIR/common"
